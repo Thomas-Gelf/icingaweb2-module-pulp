@@ -1,0 +1,42 @@
+.badge {
+  /*
+            'distribution'           => $this->translate('Distribution'),
+            'rpm'                    => $this->translate('RPM'),
+            'drpm'                   => $this->translate('DRPM'),
+            'package_group'          => $this->translate('Groups'),
+            'package_category'       => $this->translate('Categories'),
+            'package_environment'    => $this->translate('Environments'),
+            'package_langpacks'      => $this->translate('Language Packs'),
+            'erratum'                => $this->translate('Errata'),
+            'yum_repo_metadata_file' => $this->translate('YUM Repo file'),
+
+   */
+  &.distribution { background: cadetblue; }
+  &.rpm { background: limegreen; }
+  &.drpm { background: forestgreen; }
+  &.package_group { background: mediumpurple; }
+  &.package_category { background: salmon; }
+  &.package_environment { background: deeppink; }
+  &.package_langpacks { background: purple; }
+  &.erratum { background: darkred; color: white; }
+  &.yum_repo_metadata_file { background: midnightblue; }
+  &.ok { background: @color-ok; }
+  &.warning { background: @color-warning; }
+  margin-right: 0.3em;
+  font-size: 1em;
+}
+
+p.error {
+  background-color: @color-critical;
+  color: white;
+  font-weight: bold;
+  padding: 0.5em 1em;
+}
+
+.common-table td {
+  padding: 0.3em 0;
+  a {
+    color: @icinga-blue;
+    text-decoration: underline;
+  }
+}
