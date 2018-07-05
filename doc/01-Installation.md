@@ -7,6 +7,7 @@ Requirements
 * Icinga Web 2 (&gt;= 2.4.1)
 * Icinga Director (&gt; v1.5.0 current master)
 * PHP (&gt;= 5.4 or 7.x)
+* Pulp v2.x
 
 > **Hint**: this module is based on some libraries provided by the Director, that's
 > why you need to have a very recent version installed. We will ship those libraries
