@@ -6,6 +6,8 @@ This is a quick & dirty module accomplishing a very few Pulp-related tasks:
 * show current overall Pulp status
 * show task status
 
+Our [Installation Instructions](doc/01-Installation.md) should get you started.
+
 Screenshots
 -----------
 
