@@ -203,7 +203,7 @@ class RepositoryTable extends Table
         $uses = $this->countDistributorUses($distributor);
 
         if ($uses > 0) {
-            return Link::create($uses, 'pulp/index/repousers', [
+            return Link::create($uses, 'pulp/repousers', [
                 'server' => $this->serverName,
                 'url'    => $distributor->getConfig('relative_url'),
             ], [

@@ -8,6 +8,7 @@ use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Module\Pulp\Api;
 use Icinga\Module\Pulp\Config;
+use RuntimeException;
 
 abstract class Controller extends CompatController
 {
@@ -54,14 +55,64 @@ abstract class Controller extends CompatController
         return $this->serverName;
     }
 
+    protected function dumpCsv($hosts)
+    {
+        header('Content-type: text/csv');
+        foreach ($hosts as $host) {
+            echo '"' . addcslashes($host, '";') . "\"\n";
+        }
+    }
+
+    protected function getRepoUsage()
+    {
+        $filename = $this->getFilename('repo-usage_%s.json');
+        if (file_exists($filename)) {
+            return (array) json_decode(file_get_contents($filename));
+        } else {
+            return [];
+        }
+    }
+
+    protected function getRepos()
+    {
+        $filename = $this->getFilename('repos-%s.json');
+        if (! file_exists($filename) || ! is_readable($filename)) {
+            throw new RuntimeException(sprintf(
+                'Unable to read cached repositories for %s',
+                $this->getServerName()
+            ));
+        }
+
+        return json_decode(file_get_contents($filename));
+    }
+
+    protected function getFilename($pattern)
+    {
+        return sprintf(
+            '%s/%s',
+            $this->getConfig()->getCacheDir(),
+            sprintf($pattern, $this->getServerName())
+        );
+    }
+
     /**
      * @param $message
      * @return $this
      */
     protected function showError($message)
     {
+        return $this->showMessage($message, 'error');
+    }
+
+    /**
+     * @param $message
+     * @param string $class
+     * @return $this
+     */
+    protected function showMessage($message, $class = 'information')
+    {
         $this->content()->add(Html::tag('p', [
-            'class' => 'error'
+            'class' => $class
         ], $message));
 
         return $this;
