@@ -5,7 +5,8 @@ Requirements
 ------------
 
 * Icinga Web 2 (&gt;= 2.4.1)
-* Icinga Director (&gt; v1.5.0 current master)
+* Icinga Director (&gt; v1.5.0)
+* PuppetDB module (optional)
 * PHP (&gt;= 5.4 or 7.x)
 * Pulp v2.x
 
@@ -74,12 +75,26 @@ api_password = "***"
 ; proxy = "socks://127.0.0.1:8080"
 repo_url = "//mirror-prod.example.com/pulp/repos/"
 alternative_repo_urls = "//mirror-dmz.example.com/pulp/repos/"
+; puppetdb = "Main PuppetDB"
 
 [staging]
 api_url = "https://pulp-staging.example.com/pulp/api/"
 api_username = "icinga"
 api_password = "***"
 repo_url = "//mirror-staging.example.com/pulp/repos/"
+; puppetdb = "Main PuppetDB"
+```
+
+### PuppetDB
+
+
+`[ICINGAWEB_CONFIGDIR]/modules/pulp/puppetdb.ini`
+
+```ini
+[Main PuppetDB]
+api = "v3"
+host = "puppetmaster.example.com"
+certname = "icinga.example.com"
 ```
 
 Fetch your configured PULP Servers repository information

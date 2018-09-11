@@ -4,6 +4,7 @@ namespace Icinga\Module\Pulp;
 
 use dipl\Html\Html;
 use dipl\Html\Icon;
+use dipl\Html\Link;
 use dipl\Html\Table;
 use dipl\Translation\TranslationHelper;
 use Icinga\Data\ConfigObject;
@@ -17,6 +18,8 @@ class RepositoryTable extends Table
         'class' => 'common-table'
     ];
 
+    protected $serverName;
+
     protected $repos;
 
     protected $repoUsers = [];
@@ -24,8 +27,9 @@ class RepositoryTable extends Table
     /** @var ConfigObject */
     protected $serverConfig;
 
-    public function __construct($repos, ConfigObject $serverConfig)
+    public function __construct($serverName, $repos, ConfigObject $serverConfig)
     {
+        $this->serverName = $serverName;
         $this->repos = $repos;
         $this->serverConfig = $serverConfig;
     }
@@ -199,10 +203,14 @@ class RepositoryTable extends Table
         $uses = $this->countDistributorUses($distributor);
 
         if ($uses > 0) {
-            return Html::tag('span', [
+            return Link::create($uses, 'pulp/index/repousers', [
+                'server' => $this->serverName,
+                'url'    => $distributor->getConfig('relative_url'),
+            ], [
                 'class' => ['badge', 'ok'],
-                'title' => $this->listSomeDistributorUses($distributor)
-            ], $uses);
+                'title' => $this->listSomeDistributorUses($distributor),
+                'data-base-target' => '_next',
+            ]);
         } else {
             return $this->badge($uses, 'warning');
         }

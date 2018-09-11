@@ -3,6 +3,7 @@
 namespace Icinga\Module\Pulp;
 
 use Icinga\Application\Config as IcingaConfig;
+use Icinga\Module\Puppetdb\PuppetDbApi;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -11,14 +12,18 @@ class Config
     /** @var IcingaConfig */
     protected $servers;
 
+    /** @var IcingaConfig */
+    protected $puppetdb;
+
     public function __construct()
     {
         $this->servers = IcingaConfig::module('pulp', 'servers');
+        $this->puppetdb = IcingaConfig::module('pulp', 'puppetdb');
     }
 
     public function getCacheDir()
     {
-        return '/tmp';
+        return '/var/spool/icingaweb2/pulp';
     }
 
     /**
@@ -44,12 +49,47 @@ class Config
     }
 
     /**
+     * @return bool
+     */
+    public function hasPuppetDb()
+    {
+        return $this->puppetdb->count() > 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefaultPuppetDbName()
+    {
+        foreach ($this->puppetdb as $name => $section) {
+            return $name;
+        }
+
+        throw new RuntimeException(
+            'There is no PuppetDB connection in puppetdb.ini'
+        );
+    }
+
+    /**
      * @return array
      */
     public function listServerNames()
     {
         $names = [];
         foreach ($this->servers as $name => $section) {
+            $names[] = $name;
+        }
+
+        return $names;
+    }
+
+    /**
+     * @return array
+     */
+    public function listPuppetDbNames()
+    {
+        $names = [];
+        foreach ($this->puppetdb as $name => $section) {
             $names[] = $name;
         }
 
@@ -90,6 +130,15 @@ class Config
 
     /**
      * @param $name
+     * @return \Icinga\Data\ConfigObject
+     */
+    public function getPuppetDbConfig($name)
+    {
+        return $this->puppetdb->getSection($name);
+    }
+
+    /**
+     * @param $name
      * @return Api
      */
     public function getApi($name)
@@ -107,6 +156,27 @@ class Config
             $config->get('api_username'),
             $config->get('api_password'),
             $config->get('proxy')
+        );
+    }
+
+    /**
+     * @param $name
+     * @return PuppetDbApi
+     */
+    public function getPuppetDb($name)
+    {
+        if (! $this->puppetdb->hasSection($name)) {
+            throw new InvalidArgumentException(
+                "There is no such PuppetDB connection in puppetdb.ini: '$name'"
+            );
+        }
+
+        $config = $this->getPuppetDbConfig($name);
+
+        return new PuppetDbApi(
+            $config->get('api'),
+            $config->get('certname'),
+            $config->get('host')
         );
     }
 }
