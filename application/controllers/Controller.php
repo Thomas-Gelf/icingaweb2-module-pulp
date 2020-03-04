@@ -98,6 +98,11 @@ abstract class Controller extends CompatController
         }
     }
 
+    protected function addHint($text)
+    {
+        $this->content()->add(new StateHint($text, 'ok'));
+    }
+
     protected function addWarning($text)
     {
         $this->content()->add(new StateHint($text, 'warning'));
