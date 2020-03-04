@@ -18,10 +18,24 @@ class DistributorDetails extends NameValueTable
     /** @var DistributorConfig */
     protected $distributor;
 
-    public function __construct(ConfigObject $serverConfig, DistributorConfig $distributor)
-    {
+    protected $repoId;
+
+    protected $serverName;
+
+    protected $allUsers;
+
+    public function __construct(
+        $repoId,
+        $serverName,
+        ConfigObject $serverConfig,
+        DistributorConfig $distributor,
+        $allUsers
+    ) {
+        $this->repoId = $repoId;
+        $this->serverName = $serverName;
         $this->serverConfig = $serverConfig;
         $this->distributor = $distributor;
+        $this->allUsers = $allUsers;
     }
 
     protected function assemble()
@@ -43,6 +57,12 @@ class DistributorDetails extends NameValueTable
             $this->translate('Relative URL') => $d->getConfig('relative_url', '(no url)'),
             $this->translate('Published') => Time::formatWithExpirationCheck($d->get('last_publish', 'never')),
             $this->translate('Updated') => Time::format($d->get('last_updated', 'never')),
+            $this->translate('Usage') => new DistributorUsageInfo(
+                $this->repoId,
+                $d,
+                $this->allUsers,
+                $this->serverName
+            ),
         ]);
 /*
         $table->add(Table::row([[

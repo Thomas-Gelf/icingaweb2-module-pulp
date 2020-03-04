@@ -179,7 +179,13 @@ class RepositoryController extends Controller
 
         $result = [];
         foreach ($repo->distributors as $raw) {
-            $result[] = new DistributorDetails($serverConfig, new DistributorConfig($raw));
+            $result[] = new DistributorDetails(
+                $repo->id,
+                $this->getServerName(),
+                $serverConfig,
+                new DistributorConfig($raw),
+                $this->getRepoUsage()
+            );
         }
 
         return $result;
