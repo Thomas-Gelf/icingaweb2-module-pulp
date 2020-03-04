@@ -3,10 +3,12 @@
 namespace Icinga\Module\Pulp\Controllers;
 
 use gipfl\IcingaWeb2\CompatController;
+use Icinga\Date\DateFormatter;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Module\Pulp\Api;
 use Icinga\Module\Pulp\Config;
+use Icinga\Module\Pulp\Web\Widget\StateHint;
 use ipl\Html\Html;
 use RuntimeException;
 
@@ -61,6 +63,49 @@ abstract class Controller extends CompatController
         foreach ($hosts as $host) {
             echo '"' . addcslashes($host, '";') . "\"\n";
         }
+    }
+
+    protected function checkForOutdatedFiles()
+    {
+        $filename = $this->getFilename('repos-%s.json');
+        if (! \file_exists($filename)) {
+            // There is an exception, so here we don't care
+            return;
+        }
+
+        if (\filemtime($filename) < time() - 86400) {
+            $this->addWarning(\sprintf(
+                $this->translate(
+                    'Repository cache is outdated, %s has been created %s'
+                ),
+                $filename,
+                DateFormatter::timeAgo(\filemtime($filename))
+            ));
+        }
+
+        $filename = $this->getFilename('repo-usage_%s.json');
+        if (! \file_exists($filename)) {
+            return;
+        }
+        if (\filemtime($filename) < time() - 86400) {
+            $this->addWarning(\sprintf(
+                $this->translate(
+                    'PuppetDB cache is outdated, %s has been created %s'
+                ),
+                $filename,
+                DateFormatter::timeAgo(\filemtime($filename))
+            ));
+        }
+    }
+
+    protected function addWarning($text)
+    {
+        $this->content()->add(new StateHint($text, 'warning'));
+    }
+
+    protected function addCritical($text)
+    {
+        $this->content()->add(new StateHint($text, 'critical'));
     }
 
     protected function getRepoUsage()

@@ -14,6 +14,8 @@ class IndexController extends Controller
             ->handleMainTabs()
             ->setAutorefreshInterval(300);
 
+        $this->checkForOutdatedFiles();
+
         try {
             $repos = $this->getRepos();
             $this->addTitle(\sprintf(
