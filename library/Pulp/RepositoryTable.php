@@ -2,13 +2,13 @@
 
 namespace Icinga\Module\Pulp;
 
-use dipl\Html\Html;
-use dipl\Html\Icon;
-use dipl\Html\Link;
-use dipl\Html\Table;
-use dipl\Translation\TranslationHelper;
+use gipfl\IcingaWeb2\Icon;
+use gipfl\IcingaWeb2\Link;
+use gipfl\Translation\TranslationHelper;
 use Icinga\Data\ConfigObject;
 use Icinga\Date\DateFormatter;
+use ipl\Html\Html;
+use ipl\Html\Table;
 
 class RepositoryTable extends Table
 {
@@ -47,12 +47,12 @@ class RepositoryTable extends Table
 
     protected function assemble()
     {
-        $this->header()->add(Table::row([
+        $this->getHeader()->add(Table::row([
             $this->translate('Repository / Importers'),
             $this->translate('Distributors'),
         ], null, 'th'));
         $count = 0;
-        $body = $this->body();
+        $body = $this->getBody();
         foreach ($this->sortBy($this->repos, 'display_name') as $repo) {
             $count++;
             $body->add(Table::row([
@@ -150,7 +150,7 @@ class RepositoryTable extends Table
         foreach ($repo->distributors as $raw) {
             $distributor = new DistributorConfig($raw);
 
-            $table->body()->add(Table::row([[
+            $table->add(Table::row([[
                 Html::tag('strong', $distributor->get('id')),
                 ': ',
                 $distributor->getConfig('checksum_type', [

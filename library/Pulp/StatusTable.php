@@ -2,12 +2,12 @@
 
 namespace Icinga\Module\Pulp;
 
-use dipl\Html\Html;
-use dipl\Html\Icon;
-use dipl\Translation\TranslationHelper;
-use dipl\Web\Widget\NameValueTable;
+use gipfl\IcingaWeb2\Icon;
+use gipfl\Translation\TranslationHelper;
+use gipfl\IcingaWeb2\Widget\NameValueTable;
 use Icinga\Date\DateFormatter;
 use InvalidArgumentException;
+use ipl\Html\Html;
 
 class StatusTable extends NameValueTable
 {

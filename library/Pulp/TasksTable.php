@@ -2,11 +2,11 @@
 
 namespace Icinga\Module\Pulp;
 
-use dipl\Html\Html;
-use dipl\Html\Table;
-use dipl\Translation\TranslationHelper;
-use dipl\Web\Widget\NameValueTable;
+use gipfl\Translation\TranslationHelper;
+use gipfl\IcingaWeb2\Widget\NameValueTable;
 use Icinga\Date\DateFormatter;
+use ipl\Html\Html;
+use ipl\Html\Table;
 
 class TasksTable extends Table
 {
@@ -26,7 +26,7 @@ class TasksTable extends Table
     protected function assemble()
     {
         $count = 0;
-        $body = $this->body();
+        $body = $this->getBody();
         foreach ($this->tasks as $task) {
             $count++;
             $body->add(Table::row($this->formatTask($task)));

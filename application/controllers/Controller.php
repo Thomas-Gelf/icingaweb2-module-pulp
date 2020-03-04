@@ -2,12 +2,12 @@
 
 namespace Icinga\Module\Pulp\Controllers;
 
-use dipl\Html\Html;
-use dipl\Web\CompatController;
+use gipfl\IcingaWeb2\CompatController;
 use Icinga\Exception\IcingaException;
 use Icinga\Exception\ProgrammingError;
 use Icinga\Module\Pulp\Api;
 use Icinga\Module\Pulp\Config;
+use ipl\Html\Html;
 use RuntimeException;
 
 abstract class Controller extends CompatController

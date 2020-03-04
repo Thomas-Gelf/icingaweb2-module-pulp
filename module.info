@@ -1,6 +1,6 @@
 Name: PULP
 Version: 0.3.0
-Depends: director>=1.5.0
+Depends: ipl (>=0.3.0), incubator (>=0.3.0)
 Description: PULP Project frontend
  This module gives a rough overview and shows the current state of your PULP
  server repositories

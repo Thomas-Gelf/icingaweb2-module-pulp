@@ -2,8 +2,8 @@
 
 namespace Icinga\Module\Pulp\Controllers;
 
-use dipl\Html\Link;
-use dipl\Html\Table;
+use gipfl\IcingaWeb2\Link;
+use ipl\Html\Table;
 
 class RepousersController extends Controller
 {
@@ -38,10 +38,9 @@ class RepousersController extends Controller
             );
             $table = new Table();
             $table->addAttributes(['class' => 'common-table']);
-            $table->header()->add(Table::row(['Certname'], null, 'th'));
-            $body = $table->body();
+            $table->getHeader()->add(Table::row(['Certname'], null, 'th'));
             foreach ($users[$url] as $host) {
-                $body->add(Table::row([$host]));
+                $table->add(Table::row([$host]));
             }
             $this->content()->add($table);
         } else {
