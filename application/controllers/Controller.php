@@ -61,7 +61,7 @@ abstract class Controller extends CompatController
     {
         header('Content-type: text/csv');
         foreach ($hosts as $host) {
-            echo '"' . addcslashes($host, '";') . "\"\n";
+            echo '"' . \addcslashes($host, '";') . "\"\n";
         }
     }
 
@@ -73,7 +73,7 @@ abstract class Controller extends CompatController
             return;
         }
 
-        if (\filemtime($filename) < time() - 86400) {
+        if (\filemtime($filename) < \time() - 86400) {
             $this->addWarning(\sprintf(
                 $this->translate(
                     'Repository cache is outdated, %s has been created %s'
@@ -87,7 +87,7 @@ abstract class Controller extends CompatController
         if (! \file_exists($filename)) {
             return;
         }
-        if (\filemtime($filename) < time() - 86400) {
+        if (\filemtime($filename) < \time() - 86400) {
             $this->addWarning(\sprintf(
                 $this->translate(
                     'PuppetDB cache is outdated, %s has been created %s'
@@ -111,8 +111,8 @@ abstract class Controller extends CompatController
     protected function getRepoUsage()
     {
         $filename = $this->getFilename('repo-usage_%s.json');
-        if (file_exists($filename)) {
-            return (array) json_decode(file_get_contents($filename));
+        if (\file_exists($filename)) {
+            return (array) \json_decode(\file_get_contents($filename));
         } else {
             return [];
         }
@@ -121,22 +121,22 @@ abstract class Controller extends CompatController
     protected function getRepos()
     {
         $filename = $this->getFilename('repos-%s.json');
-        if (! file_exists($filename) || ! is_readable($filename)) {
+        if (! \file_exists($filename) || ! \is_readable($filename)) {
             throw new RuntimeException(sprintf(
                 'Unable to read cached repositories for %s',
                 $this->getServerName()
             ));
         }
 
-        return json_decode(file_get_contents($filename));
+        return \json_decode(\file_get_contents($filename));
     }
 
     protected function getFilename($pattern)
     {
-        return sprintf(
+        return \sprintf(
             '%s/%s',
             $this->getConfig()->getCacheDir(),
-            sprintf($pattern, $this->getServerName())
+            \sprintf($pattern, $this->getServerName())
         );
     }
 
