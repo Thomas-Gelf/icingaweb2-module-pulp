@@ -13,4 +13,16 @@ class ImporterConfig extends PulpObjectWithConfig
      * 'proxy_host',
      * 'proxy_port',
      */
+
+    public function hasEverBeenSynchronized()
+    {
+        return $this->get('last_sync') !== null;
+    }
+
+    public function syncIsOutdated($expiration = 86400)
+    {
+        $time = \strtotime($this->get('last_sync'));
+
+        return $time < (time() - $expiration);
+    }
 }

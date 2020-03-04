@@ -2,12 +2,11 @@
 
 namespace Icinga\Module\Pulp;
 
-use gipfl\IcingaWeb2\Icon;
 use gipfl\IcingaWeb2\Link;
 use gipfl\Translation\TranslationHelper;
 use Icinga\Data\ConfigObject;
-use Icinga\Date\DateFormatter;
-use ipl\Html\Html;
+use Icinga\Module\Pulp\Web\Widget\Alert;
+use Icinga\Module\Pulp\Web\Widget\Badge;
 use ipl\Html\Table;
 
 class RepositoryTable extends Table
@@ -15,7 +14,8 @@ class RepositoryTable extends Table
     use TranslationHelper;
 
     protected $defaultAttributes = [
-        'class' => 'common-table'
+        'class'            => 'common-table table-row-selectable values-table',
+        'data-base-target' => '_next',
     ];
 
     protected $serverName;
@@ -48,195 +48,86 @@ class RepositoryTable extends Table
     protected function assemble()
     {
         $this->getHeader()->add(Table::row([
-            $this->translate('Repository / Importers'),
-            $this->translate('Distributors'),
+            $this->translate('Repository'),
+            $this->translate('Units'),
+            $this->translate('Import'),
+            $this->translate('Distribution'),
+            $this->translate('Users'),
         ], null, 'th'));
-        $count = 0;
         $body = $this->getBody();
-        foreach ($this->sortBy($this->repos, 'display_name') as $repo) {
-            $count++;
+        foreach ($this->sortBy($this->repos, 'id') as $repo) {
             $body->add(Table::row([
-                [
-                    Html::tag(
-                        'nobr',
-                        $repo->display_name
-                        . ($repo->description ? ': ' . $repo->description : '')
-                    ),
-                    Html::tag('br'),
-                    $this->formatImporters($repo),
-                    Html::tag('br'),
-                    $this->repoUnitCounts($repo),
-                ],
-                $this->formatDistributors($repo)
+                Link::create($repo->id, 'pulp/repository', [
+                    'id' => $repo->id
+                ], [
+                    'data-base-target' => '_next'
+                ]),
+                $repo->total_repository_units === 0 ? Alert::warning([
+                    'title' => $this->translate('This repository is empty')
+                ]) : $repo->total_repository_units,
+                $this->summarizeImporters($repo),
+                $this->summarizeDistribution($repo),
+                $this->summarizeUsage($repo),
             ]));
-            if ($count >= 30) {
-                // break;
-                continue;
-            }
         }
     }
 
-    protected function repoUnitCounts($repo)
+    protected function summarizeDistribution($repo)
     {
-        $titles = [
-            'distribution'           => $this->translate('Distributions'),
-            'rpm'                    => $this->translate('RPMs'),
-            'drpm'                   => $this->translate('DRPMs'),
-            'package_group'          => $this->translate('Groups'),
-            'package_category'       => $this->translate('Categories'),
-            'package_environment'    => $this->translate('Environments'),
-            'package_langpacks'      => $this->translate('Language Packs'),
-            'erratum'                => $this->translate('Errata'),
-            'yum_repo_metadata_file' => $this->translate('YUM Repo file'),
-        ];
-
-        $sums = [];
-        $counts = $repo->content_unit_counts;
-        foreach ($titles as $key => $title) {
-            if (property_exists($counts, $key)) {
-                $sums[] = Html::tag('span', [
-                    'class' => ['badge', $key],
-                ], $counts->$key . ' ' . $title);
-            }
-        }
-
-        return $sums;
-    }
-
-    /**
-     * @param $repo
-     * @return array|string
-     */
-    protected function formatImporters($repo)
-    {
-        if (empty($repo->importers)) {
-            return '-';
-        }
-        $result = [];
-
-        foreach ($repo->importers as $raw) {
-            $importer = new ImporterConfig($raw);
-            // $cert = $importer->getConfig('ssl_client_cert');
-            // if (null !== $cert) {
-            //     $cert = Html::tag('pre', $cert);
-            // }
-
-            // Html::tag('pre', json_encode($raw, JSON_PRETTY_PRINT)),
-            $result[] = Html::sprintf(
-                '%s (%s: %s)',
-                $importer->getConfig('feed', 'no feed'),
-                $importer->get('id'), // or importer_type_id?
-                $this->formatTime($importer->get(
-                    'last_sync',
-                    'never'
-                ))
-            );
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param $repo
-     * @return Table|string
-     */
-    protected function formatDistributors($repo)
-    {
-        if (empty($repo->distributors)) {
-            return '-';
-        }
-
-        $table = new Table;
+        $alerts = [];
         foreach ($repo->distributors as $raw) {
             $distributor = new DistributorConfig($raw);
-
-            $table->add(Table::row([[
-                Html::tag('strong', $distributor->get('id')),
-                ': ',
-                $distributor->getConfig('checksum_type', [
-                    'no checksum ',
-                    Icon::create('warning-empty', ['style' => 'color: red'])
-                ]),
-                $distributor->get('auto_publish', false)
-                    ? null
-                    : ', no auto publish',
-                $distributor->getConfig('http', false)
-                    ? [' ', $this->repoLink($distributor, 'http')]
-                    : null,
-                $distributor->getConfig('https', false)
-                    ? [' ', $this->repoLink($distributor, 'https')]
-                    : null,
-                ' ' . $distributor->getConfig('relative_url', '(no url)') . '',
-                Html::tag('br'),
-                'Published: ',
-                $this->formatTime($distributor->get('last_publish', 'never')),
-                ' (updated: ',
-                $this->formatTime($distributor->get('last_updated', 'never'), false),
-                ')',
-                Html::tag('br'),
-                'Users: ',
-                $sums[] = $this->getDistributorUsesBadge($distributor),
-            ]]));
+            $checksumType = $distributor->getConfig('checksum_type');
+            if (empty($checksumType)) {
+                $alerts[] = Alert::critical(['title' => 'No checksums']);
+            }
+            if ($checksumType === 'sha1') {
+                $alerts[] = Alert::warning(['title' => 'SHA1 checksums in use']);
+            }
         }
 
-        return $table;
+        return $alerts;
     }
 
-    protected function repoLink(DistributorConfig $distributor, $schema = 'http')
+    protected function summarizeImporters($repo)
     {
-        $rel = $distributor->getConfig('relative_url');
-        $url = sprintf(
-            '%s:%s/%s',
-            $schema,
-            rtrim($this->serverConfig->get('repo_url'), '/'),
-            $rel
-        );
+        $alerts = [];
+        foreach ($repo->importers as $raw) {
+            $importer = new ImporterConfig($raw);
+            if ($importer->hasEverBeenSynchronized()) {
+                if ($importer->syncIsOutdated()) {
+                    $alerts[] = Alert::warning([
+                        'title' => 'Synchronization is outdated'
+                    ]);
+                }
+            } else {
+                $alerts[] = Alert::warning(['title' => 'Importer has never been synchronized']);
+            }
+        }
 
-        return Html::tag('a', [
-            'href'   => $url,
-            'target' => '_blank'
-        ], $schema);
+        return $alerts;
     }
 
-    protected function getDistributorUsesBadge(DistributorConfig $distributor)
+    /**
+     * @param $repo
+     * @return \gipfl\IcingaWeb2\Icon|int
+     */
+    protected function summarizeUsage($repo)
     {
-        $uses = $this->countDistributorUses($distributor);
+        $uses = 0;
 
-        if ($uses > 0) {
-            return Link::create($uses, 'pulp/repousers', [
-                'server' => $this->serverName,
-                'url'    => $distributor->getConfig('relative_url'),
-            ], [
-                'class' => ['badge', 'ok'],
-                'title' => $this->listSomeDistributorUses($distributor),
-                'data-base-target' => '_next',
+        foreach ($repo->distributors as $raw) {
+            $distributor = new DistributorConfig($raw);
+            $uses += $this->countDistributorUses($distributor);
+        }
+
+        if ($uses === 0) {
+            return Alert::warning([
+                'title' => $this->translate('This distributor is unused')
             ]);
-        } else {
-            return $this->badge($uses, 'warning');
-        }
-    }
-
-    protected function badge($count, $extraClass = null)
-    {
-        $classes = ['badge'];
-        if ($extraClass !== null) {
-            $classes[] = $extraClass;
         }
 
-        return Html::tag('span', ['class' => $classes], $count);
-    }
-
-    protected function listSomeDistributorUses(DistributorConfig $distributor)
-    {
-        $max = 4;
-        $url = $distributor->getConfig('relative_url');
-        $nodes = $this->repoUsers[$url];
-        if (count($nodes) < $max) {
-            return implode(', ', $nodes);
-        } else {
-            return implode(', ', array_slice($nodes, 0, $max))
-                . sprintf(' and %d more', count($nodes) - $max);
-        }
+        return $uses;
     }
 
     protected function countDistributorUses(DistributorConfig $distributor)
@@ -247,29 +138,10 @@ class RepositoryTable extends Table
         }
 
         if (isset($this->repoUsers[$url])) {
-            return count($this->repoUsers[$url]);
+            return \count($this->repoUsers[$url]);
         }
 
         return 0;
-    }
-
-    protected function formatTime($time, $critical = true)
-    {
-        if ($time === null || $time === 'never') {
-            return $this->badge('never');
-        }
-
-        $time = strtotime($time);
-        $formatted = DateFormatter::timeAgo($time, true);
-
-        if (! $critical) {
-            return $formatted;
-        }
-        if (time() - $time > 86400) {
-            return [$formatted . ' ', Icon::create('warning-empty', ['style' => 'color: red'])];
-        } else {
-            return [$formatted . ' ', Icon::create('ok', ['style' => 'color: green'])];
-        }
     }
 
     protected function sortBy($repos, $key)
@@ -278,9 +150,8 @@ class RepositoryTable extends Table
         foreach ($repos as $repo) {
             $new[$repo->$key] = $repo;
         }
+        \ksort($new);
 
-        ksort($new);
-
-        return array_values($new);
+        return \array_values($new);
     }
 }

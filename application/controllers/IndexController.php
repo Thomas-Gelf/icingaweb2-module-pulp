@@ -12,13 +12,18 @@ class IndexController extends Controller
         $serverName = $this->getServerName();
         $this
             ->handleMainTabs()
-            ->setAutorefreshInterval(300)
-            ->addTitle('Repositories: %s', $serverName);
+            ->setAutorefreshInterval(300);
 
         try {
+            $repos = $this->getRepos();
+            $this->addTitle(\sprintf(
+                $this->translate('%s: %d Repositories'),
+                $serverName,
+                \count($repos)
+            ));
             $table = new RepositoryTable(
                 $serverName,
-                $this->getRepos(),
+                $repos,
                 $this->getConfig()->getServerConfig($serverName)
             );
             $table->setRepoUsers($this->getRepoUsage());

@@ -14,7 +14,7 @@ class RepousersController extends Controller
         $this->addSingleTab($this->translate('Repo Users'));
         $this->addTitle($this->translate('Systems using [%s]/%s'), $serverName, $url);
         $this->showMessage($this->translate(
-            'PuppetDB reports a related Yumrepo for this systems'
+            'PuppetDB reports a related Yumrepo for these systems'
         ));
 
         $users = $this->getRepoUsage();

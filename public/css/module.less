@@ -33,10 +33,11 @@ p.error {
   padding: 0.5em 1em;
 }
 
-.common-table td {
-  padding: 0.3em 0;
-  a {
-    color: @icinga-blue;
-    text-decoration: underline;
+.values-table {
+  td, th {
+    text-align: right;
+    &:first-of-type {
+      text-align: left;
+    }
   }
 }
