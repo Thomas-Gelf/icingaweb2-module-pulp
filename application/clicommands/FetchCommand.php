@@ -18,6 +18,12 @@ class FetchCommand extends Command
         $this->app->getModuleManager()->loadEnabledModules();
     }
 
+    public function allAction()
+    {
+        $this->reposAction();
+        $this->puppetdbAction();
+    }
+
     public function reposAction()
     {
         $config = new Config();
